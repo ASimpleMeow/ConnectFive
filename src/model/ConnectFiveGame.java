@@ -252,8 +252,9 @@ public class ConnectFiveGame implements IGame{
 	 * Set the current player to the next player.
 	 */
 	@Override
-	public void endPlayerTurn(){
+	public int endPlayerTurn(){
 		currentPlayer = ++currentPlayer % players.length;
+		return currentPlayer;
 	}
 	
 	/**

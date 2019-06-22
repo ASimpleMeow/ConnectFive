@@ -1,8 +1,8 @@
 package model;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
@@ -16,15 +16,15 @@ public class ServerClient {
 	
 	private int clientIndex;
 	
-	private DataOutputStream toClient;
-	private DataInputStream fromClient;
+	private ObjectOutputStream toClient;
+	private ObjectInputStream fromClient;
 	
 	public ServerClient(Socket socket, int clientIndex) throws IOException{
 		this.socket = socket;
 		this.clientIndex = clientIndex;
 		
-		this.fromClient = new DataInputStream(socket.getInputStream());
-		this.toClient = new DataOutputStream(socket.getOutputStream());
+		this.toClient = new ObjectOutputStream(socket.getOutputStream());
+		this.fromClient = new ObjectInputStream(socket.getInputStream());
 	}
 	
 	public int getClientIndex(){
@@ -32,26 +32,32 @@ public class ServerClient {
 	}
 	
 	public String connect(){
-		send("Please enter your name...");
-		String name = receive();
-		send("You are now registered into the game");
-		return name;
+		ServerClientData data = new ServerClientData(clientIndex, null, "Please enter your name...", true, true);
+		send(data);
+		return receive().data;
+	}
+	
+	public void send(String board, String data, boolean clear, boolean yourTurn){
+		send(new ServerClientData(clientIndex, board, data, clear, yourTurn));
 	}
 
-	public void send(String message){
+	public void send(ServerClientData data){
 		try {
-			toClient.writeUTF(message+"\n");
+			toClient.writeObject(data);
 			toClient.flush();
 		} catch (IOException e) {
 			System.err.println("Server could not send message to client!");
 		}
 	}
 	
-	public String receive(){
+	public ServerClientData receive(){
 		try{
-			return fromClient.readUTF();
+			ServerClientData data = (ServerClientData) fromClient.readObject();
+			return data;
 		} catch (IOException e) {
 			System.err.println("Server could not recieve message from client!");
+		} catch (ClassNotFoundException e) {
+			System.err.println("Could not cast to ServerClientData class");
 		}
 		return null;
 	}

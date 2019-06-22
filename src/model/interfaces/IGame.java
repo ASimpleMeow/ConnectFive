@@ -47,8 +47,9 @@ public interface IGame {
 	
 	/**
 	 * Set the current player to the next player.
+	 * @return next players index
 	 */
-	public void endPlayerTurn();
+	public int endPlayerTurn();
 	
 	/**
 	 * Sets player name.

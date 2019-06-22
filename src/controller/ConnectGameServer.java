@@ -8,6 +8,7 @@ import java.util.List;
 
 import model.ConnectFiveGame;
 import model.ServerClient;
+import model.ServerClientData;
 import model.interfaces.IGame;
 import view.GameServerView;
 
@@ -44,19 +45,47 @@ public class ConnectGameServer{
 				ServerClient s = new ServerClient(socket, clients.size());
 				game.setPlayerName(s.getClientIndex(), s.connect());
 				view.appendTextArea("Player Connected");
+				if (clients.size() < 1) s.send(null, "Waiting for other player...", true, false);
 				clients.add(s);
 			}
-			for(ServerClient s : clients) s.send("Game will now begin...\n\n"+game);
-			view.appendTextArea("Game Starting");
+			announceAll(null, "Game will now begin...", true);
+			view.appendTextArea("Game Starting...");
+			Thread.sleep(500);
 			runGame();
 		} catch(IOException e){
-			System.err.println(e);
+			System.err.println("Error with socket");
+		} catch (InterruptedException e) {
+			System.err.println("Thread sleep encountered an error");
 		}
 	}
 	
-	private void runGame(){
-		int currentClient = 0;
+	private void runGame() throws InterruptedException{
+		int currentPlayer = game.getCurrentPlayerIndex();
+		ServerClient currentClient = clients.get(currentPlayer);
+		while(!game.isGameOver()){
+			announceAll(game.toString(),null, true);
+			currentClient.send(null, game.getCurrentPlayer()+", please select column (1-9)", false, true);
+			ServerClientData response = currentClient.receive();
+			if (response == null || response.fromPlayerIndex != currentPlayer) continue;
+			int playerSelection = Integer.parseInt(response.data);
+			int row = game.doMove(playerSelection);
+			if (row == -1) continue;
+			if (game.isGameWon(playerSelection, row)){
+				announceAll(game.toString(), game.getCurrentPlayer()+" Has Won!", true);
+				Thread.sleep(1000);
+				disconnnectAll();
+				return;
+			}
+			currentPlayer = game.endPlayerTurn();
+			currentClient = clients.get(currentPlayer);
+		}
+		view.setTextArea("Game Is Over With No Winners");
+		Thread.sleep(1000);
 		disconnnectAll();
+	}
+	
+	private void announceAll(String board, String message, boolean clear){
+		for (ServerClient s : clients) s.send(board, message, clear, false);
 	}
 	
 	private void disconnnectAll(){
@@ -69,9 +98,5 @@ public class ConnectGameServer{
 		} catch (IOException e) {
 			System.err.println("Could not close server socket!");
 		}
-	}
-	
-	public IGame getGame(){
-		return game;
 	}
 }

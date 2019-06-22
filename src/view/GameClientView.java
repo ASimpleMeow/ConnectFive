@@ -72,6 +72,14 @@ public class GameClientView extends JFrame{
 	}
 	
 	/**
+	 * Enables or disables text field
+	 * @param enable
+	 */
+	public void enableTextField(boolean enable){
+		textField.setEditable(enable);
+	}
+	
+	/**
 	 * Appends a given String to the text area.
 	 * @param text
 	 */
