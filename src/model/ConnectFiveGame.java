@@ -11,15 +11,25 @@ import model.interfaces.IGame;
  */
 public class ConnectFiveGame implements IGame{
 	
-	/* Constants */
-	private final int WIN_AMOUNT = 5;
-	private final char PLAYER1 = 'X';
-	private final char PLAYER2 = 'O';
+	/** Game related constants */
+	public static final int PLAYERS_AMOUNT = 2;
+	public static final int WIN_AMOUNT = 5;
+	public static final char[] PLAYER_SYMBOLS = {'X', 'O'};
 	
-	private int boardColumns, boardRows; // The sizes of the board for the current game instance
-	private char[][] board; // The game board
-	private String[] players; // All player names
-	private int currentPlayer; // Index of the current player
+	/** The sizes of the board for the current game instance */
+	private int boardColumns, boardRows;
+	
+	/** The logical game board of 2 dimensional character arrays */
+	private char[][] board;
+	
+	/** Array of String player names */
+	private String[] players;
+	
+	/** Current active player index */
+	private int currentPlayer;
+	
+	/** Current game session is over */
+	private boolean gameWonOver;
 	
 	/**
 	 * Constructor for initialising all default values.
@@ -30,6 +40,7 @@ public class ConnectFiveGame implements IGame{
 		this.boardRows = 6;
 		this.players = new String[]{"Player1", "Player2"};
 		this.currentPlayer = 0;
+		this.gameWonOver = false;
 		initBoard();
 	}
 	
@@ -41,15 +52,18 @@ public class ConnectFiveGame implements IGame{
 	 * @throws Exception
 	 */
 	public ConnectFiveGame(int columns, int rows, String[] players) throws Exception{
+		// Safety checks
 		if (columns < 5 || rows < 5) throw new Exception("Board sizes are not sufficient");
-		
-		if (players == null || players.length < 2) this.players = new String[]{"Player1", "Player2"};
-		else this.players = players.clone();
+		if (players == null || players.length < PLAYERS_AMOUNT) {
+			this.players = new String[PLAYERS_AMOUNT];
+			for (int i=0; i<PLAYERS_AMOUNT; ++i) this.players[i] = "Player"+String.valueOf(i+1);
+		} else this.players = players.clone();
 		
 		this.board = new char[columns][rows];
 		this.boardColumns = columns;
 		this.boardRows = rows;
 		this.currentPlayer = 0;
+		this.gameWonOver = false;
 		initBoard();
 	}
 	
@@ -62,6 +76,7 @@ public class ConnectFiveGame implements IGame{
 			for (int j=0; j<boardRows; ++j)
 				board[i][j] = ' ';
 		currentPlayer = 0;
+		gameWonOver = false;
 	}
 	
 	/**
@@ -72,7 +87,8 @@ public class ConnectFiveGame implements IGame{
 	 */
 	@Override
 	public boolean isGameWon(int column, int row){
-		return isGameWon(column, row, getCurrentPlayerIndex());
+		gameWonOver = isGameWon(column, row, getCurrentPlayerIndex());
+		return gameWonOver;
 	}
 
 	/**
@@ -87,13 +103,14 @@ public class ConnectFiveGame implements IGame{
 		/* Safety checks */
 		if (column < 0 || column > boardColumns) throw new IndexOutOfBoundsException();
 		if (row < 0 || row > boardRows) throw new IndexOutOfBoundsException();
-		if (playerIndex != 0 && playerIndex != 1) throw new IndexOutOfBoundsException();
+		if (playerIndex < 0 || playerIndex >= PLAYERS_AMOUNT) throw new IndexOutOfBoundsException();
 		
-		final char symbol = playerIndex == 0 ? PLAYER1: PLAYER2;
-		return checkVerticalWin(column, row, symbol) || 
-				checkHorizontalWin(column, row, symbol) ||
-				checkDiagonalWinForward(column, row, symbol) ||
-				checkDiagonalWinBackward(column, row, symbol);
+		final char symbol = PLAYER_SYMBOLS[playerIndex];
+		gameWonOver =  checkVerticalWin(column, row, symbol) || 
+						checkHorizontalWin(column, row, symbol) ||
+						checkDiagonalWinForward(column, row, symbol) ||
+						checkDiagonalWinBackward(column, row, symbol);
+		return gameWonOver;
 	}
 	
 	/**
@@ -203,7 +220,7 @@ public class ConnectFiveGame implements IGame{
 	@Override
 	public boolean isGameOver() {
 		for (int col=0; col<boardColumns; ++col)
-			if (board[col][0] == ' ') return false;
+			if (board[col][0] == ' ') return false || gameWonOver;
 		return true;
 	}
 
@@ -287,7 +304,13 @@ public class ConnectFiveGame implements IGame{
 	 */
 	@Override
 	public char getCurrentPlayerSymbol(){
-		return currentPlayer == 0 ? PLAYER1 : PLAYER2;
+		return PLAYER_SYMBOLS[currentPlayer];
+	}
+	
+	@Override
+	public char getPlayerSymbol(int playerIndex){
+		if (playerIndex < 0 || playerIndex > PLAYER_SYMBOLS.length) return ' ';
+		return PLAYER_SYMBOLS[playerIndex];
 	}
 
 	/**
@@ -306,6 +329,10 @@ public class ConnectFiveGame implements IGame{
 	@Override
 	public String toString(){
 		StringBuilder boardString = new StringBuilder();
+		for (int col=0; col<boardColumns; ++col)boardString.append(" "+(col+1)+" ");
+		boardString.append('\n');
+		for (int col=0; col<boardColumns; ++col)boardString.append("---");
+		boardString.append('\n');
 		for (int row=0; row<boardRows; ++row){
 			for (int col=0; col<boardColumns; ++col){
 				boardString.append("["+board[col][row]+"]");

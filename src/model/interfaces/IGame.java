@@ -80,6 +80,12 @@ public interface IGame {
 	public String getPlayer(int playerIndex);
 	
 	/**
+	 * @param playerIndex
+	 * @return Character symbol for the given player
+	 */
+	public char getPlayerSymbol(int playerIndex);
+	
+	/**
 	 * @return Primitive String array of all player names
 	 */
 	public String[] getPlayers();

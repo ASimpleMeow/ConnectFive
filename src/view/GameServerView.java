@@ -14,6 +14,8 @@ import javax.swing.JTextArea;
 public class GameServerView extends JFrame{
 
 	private static final long serialVersionUID = -685456591411784579L;
+	
+	/** Server text area for server internal information */
 	private JTextArea textArea;
 	
 	public GameServerView(){

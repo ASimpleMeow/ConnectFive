@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JTextField;
 import javax.swing.JTextArea;
+import java.awt.Font;
 /**
  * The View class for the game client.
  * @author Oleksandr Kononov
@@ -14,7 +15,11 @@ import javax.swing.JTextArea;
 public class GameClientView extends JFrame{
 	
 	private static final long serialVersionUID = -8122356930424875600L;
+	
+	/** Client text field for inputs for transfer to server */
 	private JTextField textField;
+	
+	/** Client text area for outputs from server */
 	private JTextArea textArea;
 	
 	/**
@@ -34,6 +39,9 @@ public class GameClientView extends JFrame{
 		
 		/* Setup text area */
 		textArea = new JTextArea();
+		textArea.setWrapStyleWord(true);
+		textArea.setLineWrap(true);
+		textArea.setFont(new Font("Monospaced", Font.BOLD, 18));
 		textArea.setEditable(false);
 		getContentPane().add(textArea, BorderLayout.CENTER);
 		

@@ -7,15 +7,28 @@ import org.junit.Test;
 import model.ConnectFiveGame;
 import model.interfaces.IGame;
 
+/**
+ * JUnit Test class for testing ConnectFiveGame model class.
+ * @author Oleksandr Kononov
+ *
+ */
 public class TestConnectFiveGame {
 
+	/** Game variable used for testing */
 	private IGame baseGame;
 	
+	/**
+	 * Method to run before every test, initialises the game instance.
+	 */
 	@Before
 	public void setup(){
 		baseGame = new ConnectFiveGame();
 	}
 	
+	/**
+	 * Testing ConnectFiveGame constructor.
+	 * @throws Exception
+	 */
 	@Test
 	public void testConstructor() throws Exception {
 		assertEquals(2, baseGame.getPlayers().length);
@@ -47,13 +60,21 @@ public class TestConnectFiveGame {
 		assertEquals(5, baseGame.getBoard()[0].length);
 	}
 	
+	/**
+	 * Testing constructor exception handling for null players array.
+	 * @throws Exception
+	 */
 	@Test(expected=Exception.class)
 	public void TestConstructorException() throws Exception{
 		baseGame = new ConnectFiveGame(4, 4, null);
 	}
 
+	/**
+	 * Testing initBoard method.
+	 */
 	@Test
 	public void TestInitBoard(){
+		/* Verify initBoard clearing all symbols on the board */
 		String initialBoard = baseGame.toString();
 		baseGame.doMove(2);
 		baseGame.doMove(4);
@@ -62,11 +83,15 @@ public class TestConnectFiveGame {
 		baseGame.initBoard();
 		assertEquals(initialBoard, baseGame.toString());
 		
+		/* Verify currentPlayerIndex reset */
 		assertEquals(0, baseGame.getCurrentPlayerIndex());
 		baseGame.endPlayerTurn();
 		assertNotEquals(0, baseGame.getCurrentPlayerIndex());
 	}
 	
+	/**
+	 * Testing setting player name.
+	 */
 	@Test
 	public void TestSetPlayerName(){
 		assertEquals("Player1", baseGame.getPlayer(0));
@@ -96,13 +121,19 @@ public class TestConnectFiveGame {
 		} catch(IndexOutOfBoundsException e){}
 	}
 	
+	/**
+	 * Testing doMove method.
+	 * @throws Exception
+	 */
 	@Test
 	public void TestDoMove() throws Exception{
+		/* Make move for all spaces on the board */
 		for (int i=0; i<9; ++i)
 			for (int j=0; j<6; ++j)
 				assertNotEquals(-1, baseGame.doMove(i));
 		baseGame.initBoard();
 		
+		/* Verify doMove proper position of symbols on the board */
 		assertEquals('X', baseGame.getCurrentPlayerSymbol());
 		
 		assertEquals(5, baseGame.doMove(0));
@@ -130,11 +161,17 @@ public class TestConnectFiveGame {
 		assertEquals(preMoveBoard, baseGame.toString());
 	}
 	
+	/**
+	 * Testing gameOver method.
+	 * @throws Exception
+	 */
 	@Test
 	public void TestGameOver() throws Exception{
+		/* Game cannot be over when just initialised */
 		baseGame = new ConnectFiveGame(5, 5, null);
 		assertEquals(false, baseGame.isGameOver());
 		
+		/* Fill all spaces except last column */
 		for (int i=0; i<4; ++i)
 			for (int j=0; j<5; ++j){
 				assertNotEquals(-1, baseGame.doMove(i));
@@ -142,6 +179,7 @@ public class TestConnectFiveGame {
 				baseGame.endPlayerTurn();
 			}
 		
+		/* Alternate between players and fill last column */
 		assertEquals(false, baseGame.isGameOver());
 		assertNotEquals(-1, baseGame.doMove(4));
 		baseGame.endPlayerTurn();
@@ -160,6 +198,9 @@ public class TestConnectFiveGame {
 		assertEquals(true, baseGame.isGameOver());
 	}
 	
+	/**
+	 * Test horizontal victory checking.
+	 */
 	@Test
 	public void TestHorizontalWin(){
 		/* Horizontal line of the same players symbol - win */
@@ -186,6 +227,9 @@ public class TestConnectFiveGame {
 		baseGame.endPlayerTurn();
 	}
 	
+	/**
+	 * Test vertical victory checking.
+	 */
 	@Test
 	public void TestVerticalWin(){
 		/* Vertical line of the same players symbol - win */
@@ -213,6 +257,9 @@ public class TestConnectFiveGame {
 		baseGame.endPlayerTurn();
 	}
 	
+	/**
+	 * Check diagonal (forward slash) victory checking.
+	 */
 	@Test
 	public void TestDiagonalWinForward(){
 		/* Create "steps" for Player1 to win in a forward slash diagonal */
@@ -253,6 +300,9 @@ public class TestConnectFiveGame {
 		assertEquals(false, baseGame.isGameWon(4, row));
 	}
 	
+	/**
+	 * Check diagonal (backward slash) victory checking.
+	 */
 	@Test
 	public void TestDiagonalWinBackward(){
 		/* Create "steps" for Player1 to win in a backward slash diagonal */
@@ -293,6 +343,9 @@ public class TestConnectFiveGame {
 		assertEquals(false, baseGame.isGameWon(5, row));
 	}
 	
+	/**
+	 * Check invalid moves for gameWon method.
+	 */
 	@Test
 	public void TestGameWonInvalidParameters(){
 		try{

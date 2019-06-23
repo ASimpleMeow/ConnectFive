@@ -2,7 +2,6 @@ package controller;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,85 +11,171 @@ import model.ServerClientData;
 import model.interfaces.IGame;
 import view.GameServerView;
 
-public class ConnectGameServer{
+/**
+ * Controller class for the game server.
+ * 
+ * @author Oleksandr Kononov
+ *
+ */
+public class ConnectGameServer extends Thread{
 	
+	/** Port number constant for connections */
+	public static final int PORT = 8000;
+	
+	/** The view component for the client controller */
 	private GameServerView view;
 	
+	/** Server socket for establishing client connections */
 	private ServerSocket serverSocket;
 	
+	/** List of ServerClient object to keep track of client related data */
 	private List<ServerClient> clients;
 	
+	/** The Connect type game */
 	private IGame game;
 	
 	/**
 	 * Point of entry for the server program.
 	 * @param args
+	 * @throws InterruptedException 
 	 */
-	public static void main(String[] args){
-		new ConnectGameServer().run();
+	public static void main(String[] args) throws InterruptedException{
+		new ConnectGameServer();
 	}
 	
 	/**
-	 * Main function to handle the server program.
+	 * Constructor for the game server, initialises values and starts the game.
+	 * @throws InterruptedException
 	 */
-	private void run(){
+	public ConnectGameServer() throws InterruptedException{
 		game = new ConnectFiveGame();
 		view = new GameServerView();
 		clients = new ArrayList<ServerClient>();
-		try{
-			serverSocket = new ServerSocket(8000);
+		
+		try {
+			serverSocket = new ServerSocket(PORT);
 			view.setTextArea("Socket Created Successfully\n");
-			while(clients.size() < 2){
-				Socket socket = serverSocket.accept();
-				ServerClient s = new ServerClient(socket, clients.size());
-				game.setPlayerName(s.getClientIndex(), s.connect());
-				view.appendTextArea("Player Connected");
-				if (clients.size() < 1) s.send(null, "Waiting for other player...", true, false);
-				clients.add(s);
-			}
-			announceAll(null, "Game will now begin...", true);
-			view.appendTextArea("Game Starting...");
-			Thread.sleep(500);
+			connectClients();
 			runGame();
-		} catch(IOException e){
-			System.err.println("Error with socket");
-		} catch (InterruptedException e) {
-			System.err.println("Thread sleep encountered an error");
+		} catch (IOException e) {
+			System.err.println("Could not create server socket!\n" + e.getMessage());
 		}
 	}
 	
+	/**
+	 * Connects to all clients (player) as specified by the PLAYERS_AMOUNT constant.
+	 */
+	private void connectClients(){
+		try{
+			while(clients.size() < ConnectFiveGame.PLAYERS_AMOUNT){
+				ServerClient sc = new ServerClient(serverSocket.accept(), clients.size());
+				game.setPlayerName(sc.getClientIndex(), sc.getClientName());
+				view.appendTextArea("Player "+sc.getClientName()+" Connected");
+				clients.add(sc);
+				if (clients.size() < ConnectFiveGame.PLAYERS_AMOUNT)
+					sc.send(null, "Waiting for other player(s)...", true, false);
+			}
+		} catch(IOException e){
+			System.err.println("Exception creating and connecting to client\n"+e.getMessage());
+		}
+	}
+	
+	/**
+	 * Method for the game loop of the server.
+	 * @throws InterruptedException
+	 */
 	private void runGame() throws InterruptedException{
-		int currentPlayer = game.getCurrentPlayerIndex();
-		ServerClient currentClient = clients.get(currentPlayer);
-		while(!game.isGameOver()){
-			announceAll(game.toString(),null, true);
-			currentClient.send(null, game.getCurrentPlayer()+", please select column (1-9)", false, true);
+		// Announce the beginning of the game
+		announceAll(null, "Game will now begin...", true);
+		for (ServerClient sc : clients) 
+			sc.send(null, "Your symbol is: "+game.getPlayerSymbol(sc.getClientIndex()), false, false);
+		view.appendTextArea("Game Starting...");
+		Thread.sleep(1500);
+		
+		ServerClient currentClient = clients.get(game.getCurrentPlayerIndex());
+		String playerQuery = ": It's your turn, please enter a column (1-9)";
+		String othersMessage = "Waiting for player: ";
+		
+		// Main loop of the game
+		while(!game.isGameOver() && allClientsConnected()){
+			// Announce the current board to all players
+			announceAllBut(currentClient, game.toString(),othersMessage+currentClient.getClientName(), true);
+			
+			// Send query to the current player
+			currentClient.send(game.toString(), currentClient.getClientName()+playerQuery, true, true);
 			ServerClientData response = currentClient.receive();
-			if (response == null || response.fromPlayerIndex != currentPlayer) continue;
-			int playerSelection = Integer.parseInt(response.data);
-			int row = game.doMove(playerSelection);
+			if (response == null) continue;
+			
+			// Attempt to perform the move on the game board
+			int column = -1;
+			try { column = Integer.parseInt(response.data) - 1; }
+			catch (NumberFormatException e) { continue; }
+			int row = game.doMove(column);
 			if (row == -1) continue;
-			if (game.isGameWon(playerSelection, row)){
+			
+			// If game is won by the previous move, the current player won
+			if (game.isGameWon(column, row)){
 				announceAll(game.toString(), game.getCurrentPlayer()+" Has Won!", true);
-				Thread.sleep(1000);
+				Thread.sleep(2000);
 				disconnnectAll();
 				return;
 			}
-			currentPlayer = game.endPlayerTurn();
-			currentClient = clients.get(currentPlayer);
+			
+			// Switch to next player
+			currentClient = clients.get(game.endPlayerTurn());
 		}
+		
+		// No further moves can be made or a player disconnected
 		view.setTextArea("Game Is Over With No Winners");
-		Thread.sleep(1000);
+		announceAll(null, "Game Is Over With No Winners", false);
+		Thread.sleep(2000);
 		disconnnectAll();
 	}
 	
+	/**
+	 * Send data such as the state of the game board, some message and a clear text
+	 * flag to all connected clients (players).
+	 * @param board String representing the current state of the game board
+	 * @param message String to send to the player (usually a query)
+	 * @param clear Boolean flag on whether to clear the text area (refresh) for the clients
+	 */
 	private void announceAll(String board, String message, boolean clear){
-		for (ServerClient s : clients) s.send(board, message, clear, false);
+		for (ServerClient sc : clients) sc.send(board, message, clear, false);
 	}
 	
+	/**
+	 * Send data such as the state of the game board, some message and a clear text
+	 * flag to all connected clients (players) but s.
+	 * @param s ServerClient to exclude from the announcement 
+	 * @param board String representing the current state of the game board
+	 * @param message String to send to the player (usually a query)
+	 * @param clear Boolean flag on whether to clear the text area (refresh) for the clients
+	 */
+	private void announceAllBut(ServerClient s, String board, String message, boolean clear){
+		for (ServerClient sc: clients) {
+			if (sc.equals(s)) continue;
+			sc.send(board, message, clear, false);
+		}
+	}
+	
+	/**
+	 * Checks all clients in the list if they are still connected.
+	 * @return true if all clients are connected, false otherwise
+	 */
+	private boolean allClientsConnected(){
+		for(ServerClient sc : clients) if (!sc.isConnected()) return false;
+		return true;
+	}
+	
+	/**
+	 * Disconnects all clients from server.
+	 * If all clients are disconnected the server doesn't need to exist
+	 * as there is no more to be played, so the view is disposed as well.
+	 */
 	private void disconnnectAll(){
-		for (ServerClient s : clients) s.disconnect();
+		for (ServerClient sc : clients) sc.disconnect();
 		clients.clear();
+		
 		try {
 			serverSocket.close();
 			view.setVisible(false);

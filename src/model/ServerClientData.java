@@ -10,12 +10,23 @@ import java.io.Serializable;
  */
 public class ServerClientData implements Serializable{
 	private static final long serialVersionUID = -7257704834602472132L;
+	
+	/** Index of the player/client from/to which data will be transfered to/from */
 	public int fromPlayerIndex;
+	
+	/** String value representing the game board */
 	public String board;
+	
+	/** Additional data for transfer between client/server */
 	public String data;
+	
+	/** Flag for clearing (refreshing) text area of the client window */
 	public boolean clearText;
+	
+	/** Flag for enabling/disabling ability to edit text field for client window */
 	public boolean yourTurn;
 	
+	/** Default constructor and values for the data */
 	public ServerClientData(){
 		this.fromPlayerIndex = -1;
 		this.board = "";
@@ -24,6 +35,7 @@ public class ServerClientData implements Serializable{
 		this.yourTurn = false;
 	}
 	
+	/** Specific constructor for the data */
 	public ServerClientData(int from, String board, String data, boolean clearText, boolean yourTurn){
 		this.fromPlayerIndex = from;
 		this.board = board == null ? "" : board;
