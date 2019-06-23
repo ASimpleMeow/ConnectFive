@@ -12,6 +12,8 @@ import java.net.Socket;
  */
 public class ServerClient {
 	
+	public static final String CONNECTION_QUERY = "Please enter your name...";
+	
 	/** Socket for establishing connection with the client */
 	private Socket socket;
 	
@@ -37,15 +39,12 @@ public class ServerClient {
 	public ServerClient(Socket socket, int clientIndex) throws IOException{
 		this.socket = socket;
 		this.clientIndex = clientIndex;
+		this.clientName = "Player"+String.valueOf(clientIndex+1);
 		
 		this.toClient = new ObjectOutputStream(socket.getOutputStream());
 		this.fromClient = new ObjectInputStream(socket.getInputStream());
 		
 		this.isConnected = true;
-		
-		// Send initial query for player name to initialise clientName variable
-		send(new ServerClientData(clientIndex, null, "Please enter your name...", true, true));
-		this.clientName = receive().data;
 	}
 	
 	/**
@@ -114,6 +113,20 @@ public class ServerClient {
 	}
 	
 	/**
+	 * Establish a connection with client by sending a query of name request
+	 */
+	public void connect(){
+		send(null, CONNECTION_QUERY, true, true);
+		ServerClientData data = receive();
+		try{
+			this.clientName = data.data;
+		} catch(NullPointerException e){
+			System.err.println("Could not recieve connection response data from client");
+			disconnect();
+		}
+	}
+	
+	/**
 	 * Disconnects the client from the server.
 	 */
 	public void disconnect(){
@@ -121,6 +134,7 @@ public class ServerClient {
 			toClient.close();
 			fromClient.close();
 			socket.close();
+			isConnected = false;
 		} catch (IOException e) {
 			System.err.println("Count not close socket!");
 		}

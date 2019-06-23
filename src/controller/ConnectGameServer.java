@@ -69,6 +69,7 @@ public class ConnectGameServer extends Thread{
 		try{
 			while(clients.size() < ConnectFiveGame.PLAYERS_AMOUNT){
 				ServerClient sc = new ServerClient(serverSocket.accept(), clients.size());
+				sc.connect();
 				game.setPlayerName(sc.getClientIndex(), sc.getClientName());
 				view.appendTextArea("Player "+sc.getClientName()+" Connected");
 				clients.add(sc);

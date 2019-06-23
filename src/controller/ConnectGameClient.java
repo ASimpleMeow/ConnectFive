@@ -50,7 +50,7 @@ public class ConnectGameClient extends Thread implements ActionListener{
 			socket = new Socket("localhost", ConnectGameServer.PORT);
 			fromServer = new ObjectInputStream(socket.getInputStream());
 			toServer = new ObjectOutputStream(socket.getOutputStream());
-		} catch (Exception e) {
+		} catch (IOException e) {
 			System.err.println("Could not connect to server!");
 			return;
 		}
