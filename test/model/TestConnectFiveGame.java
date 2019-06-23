@@ -286,7 +286,8 @@ public class TestConnectFiveGame {
 			for(int j=i; j>0; --j)
 				assertNotEquals(-1, baseGame.doMove(i));
 		
-		assertNotEquals(-1, baseGame.doMove(2)); //Broken diagonal for Player1 by Player2
+		/* Broken diagonal for Player1 by Player2 */
+		assertNotEquals(-1, baseGame.doMove(2));
 		baseGame.endPlayerTurn();
 		
 		row = 0;
@@ -329,7 +330,8 @@ public class TestConnectFiveGame {
 			for(int j=6-i; j>0; --j)
 				assertNotEquals(-1, baseGame.doMove(i));
 		
-		assertNotEquals(-1, baseGame.doMove(3)); //Broken diagonal for Player1 by Player2
+		/* Broken diagonal for Player1 by Player2 */
+		assertNotEquals(-1, baseGame.doMove(3));
 		baseGame.endPlayerTurn();
 
 		row = 0;

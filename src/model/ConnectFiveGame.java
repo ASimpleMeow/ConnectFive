@@ -52,7 +52,7 @@ public class ConnectFiveGame implements IGame{
 	 * @throws Exception
 	 */
 	public ConnectFiveGame(int columns, int rows, String[] players) throws Exception{
-		// Safety checks
+		/* Safety checks */
 		if (columns < 5 || rows < 5) throw new Exception("Board sizes are not sufficient");
 		if (players == null || players.length < PLAYERS_AMOUNT) {
 			this.players = new String[PLAYERS_AMOUNT];

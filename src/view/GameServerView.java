@@ -20,7 +20,7 @@ public class GameServerView extends JFrame{
 	
 	public GameServerView(){
 		setTitle("Connect Game Server");
-		setSize(600, 400);
+		setSize(300, 300);
 		getContentPane().setLayout(new BorderLayout(0, 0));
 		
 		/* Setup text area */

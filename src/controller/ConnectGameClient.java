@@ -18,6 +18,8 @@ import view.GameClientView;
  */
 public class ConnectGameClient extends Thread implements ActionListener{
 	
+	public static final String CONNECTION_ADDRESS = "localhost";
+	
 	/** The view component for the client controller */
 	private GameClientView view;
 	
@@ -45,9 +47,9 @@ public class ConnectGameClient extends Thread implements ActionListener{
 		view = new GameClientView(this);
 		view.setTextArea("Please wait will connection to server is established...");
 		
-		// Try to connect to the server.
+		/* Try to connect to the server */
 		try {
-			socket = new Socket("localhost", ConnectGameServer.PORT);
+			socket = new Socket(CONNECTION_ADDRESS, ConnectGameServer.PORT);
 			fromServer = new ObjectInputStream(socket.getInputStream());
 			toServer = new ObjectOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
@@ -55,7 +57,7 @@ public class ConnectGameClient extends Thread implements ActionListener{
 			return;
 		}
 		
-		// Start the polling thread
+		/* Start the polling thread */
 		this.start();
 	}
 	
@@ -64,7 +66,7 @@ public class ConnectGameClient extends Thread implements ActionListener{
 	 */
 	@Override
 	public void run(){
-		// Poll for any ServerClientData sent from the server and process it
+		/* Poll for any ServerClientData sent from the server and process it */
 		try {
 			while(socket.getInetAddress().isReachable(100)){
 				processServerData((ServerClientData)fromServer.readObject());
@@ -73,7 +75,7 @@ public class ConnectGameClient extends Thread implements ActionListener{
 			System.err.println("Could not reach server!");
 		}
 		
-		// If an exception has occurred (could not reach server, close the connection and exit
+		/* If an exception has occurred (could not reach server, close the connection and exit */
 		try{
 			fromServer.close();
 			toServer.close();
@@ -93,10 +95,7 @@ public class ConnectGameClient extends Thread implements ActionListener{
 		if (data == null) return;
 		playerIndex = data.fromPlayerIndex;
 		if (data.clearText) view.clearTextArea();
-		if (!data.board.isEmpty()){
-			view.appendTextArea(data.board);
-			System.out.println(data.board);
-		}
+		if (!data.board.isEmpty())view.appendTextArea(data.board);
 		if (!data.data.isEmpty()) view.appendTextArea(data.data);
 		view.enableTextField(data.yourTurn);
 	}
@@ -111,7 +110,7 @@ public class ConnectGameClient extends Thread implements ActionListener{
 		String message = view.getText().trim();
 		if (message.isEmpty()) return;
 		
-		// Send ServerClientData to server from this playerIndex
+		/* Send ServerClientData to server from this playerIndex */
 		try {
 			toServer.writeObject(new ServerClientData(playerIndex, "", message, false, false));
 			toServer.flush();
@@ -119,7 +118,7 @@ public class ConnectGameClient extends Thread implements ActionListener{
 			System.err.println("Could not send message to server!");
 		}
 		
-		// Clear view text field and disable it for editing
+		/* Clear view text field and disable it for editing */
 		view.clearTextField();
 		view.enableTextField(false);
 	}

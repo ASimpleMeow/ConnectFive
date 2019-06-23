@@ -86,7 +86,7 @@ public class ConnectGameServer extends Thread{
 	 * @throws InterruptedException
 	 */
 	private void runGame() throws InterruptedException{
-		// Announce the beginning of the game
+		/* Announce the beginning of the game */
 		announceAll(null, "Game will now begin...", true);
 		for (ServerClient sc : clients) 
 			sc.send(null, "Your symbol is: "+game.getPlayerSymbol(sc.getClientIndex()), false, false);
@@ -97,24 +97,24 @@ public class ConnectGameServer extends Thread{
 		String playerQuery = ": It's your turn, please enter a column (1-9)";
 		String othersMessage = "Waiting for player: ";
 		
-		// Main loop of the game
+		/* Main loop of the game */
 		while(!game.isGameOver() && allClientsConnected()){
-			// Announce the current board to all players
+			/* Announce the current board to all players */
 			announceAllBut(currentClient, game.toString(),othersMessage+currentClient.getClientName(), true);
 			
-			// Send query to the current player
+			/* Send query to the current player */
 			currentClient.send(game.toString(), currentClient.getClientName()+playerQuery, true, true);
 			ServerClientData response = currentClient.receive();
 			if (response == null) continue;
 			
-			// Attempt to perform the move on the game board
+			/* Attempt to perform the move on the game board */
 			int column = -1;
 			try { column = Integer.parseInt(response.data) - 1; }
 			catch (NumberFormatException e) { continue; }
 			int row = game.doMove(column);
 			if (row == -1) continue;
 			
-			// If game is won by the previous move, the current player won
+			/* If game is won by the previous move, the current player won */
 			if (game.isGameWon(column, row)){
 				announceAll(game.toString(), game.getCurrentPlayer()+" Has Won!", true);
 				Thread.sleep(2000);
@@ -122,11 +122,11 @@ public class ConnectGameServer extends Thread{
 				return;
 			}
 			
-			// Switch to next player
+			/* Switch to next player */
 			currentClient = clients.get(game.endPlayerTurn());
 		}
 		
-		// No further moves can be made or a player disconnected
+		/* No further moves can be made or a player disconnected */
 		view.setTextArea("Game Is Over With No Winners");
 		announceAll(null, "Game Is Over With No Winners", false);
 		Thread.sleep(2000);
