@@ -6,7 +6,7 @@ A two-player connection game in which the players take turns dropping discs (sym
 - Implemented using Java programming langauge, Eclipse IDE and JUnit testing framework.
 - Server application holds state and business logic of the game, recieving the movements from the players and deciding whether the game is over or won.
 - Client application will receive and send data to the server _(e.g. game state, player turn, messages, etc)_.
-- Server/Client communication is over HTTP and is achieved using Java socket programming.
+- Server/Client communication is handled via Java sockets.
 - When server starts it waits for two players to connect. If one of the players diconnects the game is over _(all connections are checked after every valid move)_.
 - The server establishes an initial connection with a prompt to the client for player name, then it displays whether waiting for more players or the game can start.
 - On each turn, the server sends the client game board state and prompts the active current user for input _(or informs the player to wait until the other player makes a move)_.
