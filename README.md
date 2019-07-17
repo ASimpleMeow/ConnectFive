@@ -28,6 +28,17 @@ Testing framework used is JUnit for testing, the two main class models tested ar
 ![13 JUnit tests pass](./images/tests.png "JUnit Tests Results")
 
 
+## How To Run Tests
+As the testing framework used for this project is JUnit and was built-in with the IDE used (Eclipse Java), to run these tests Eclipse Java must be installed.
+
+1. Open Eclipse.
+2. Navigate the menu to `File -> Import... -> Git -> Projects From Git -> Clone URI`
+3. Fill in the URI, the project will be imported into Eclipse.
+4. In the *Package Explorer* window, navigate to `test` folder.
+5. Right click `test` folder and select `Run As -> JUnit Test`.
+6. The tests will run and give the report.
+
+
 # How To Run
 Example build of the **Connect 5** game is configured to run on `localhost` by default with only 2 players, to change this to another address you need to change the constant `CONNECTION_ADDRESS` in `/src/controller/ConnectGameClient.java` to whatever address you want and rebuild the project.
 
